@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+efs_browser_profile/
+efs_output/
+*.log
+.DS_Store
+Thumbs.db
