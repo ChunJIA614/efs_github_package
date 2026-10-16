@@ -14,10 +14,40 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
 
-import openpyxl
-from bs4 import BeautifulSoup
-from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
-from playwright.sync_api import Page, Response, TimeoutError as PlaywrightTimeoutError, sync_playwright
+def _ensure_dependencies() -> None:
+    """Auto-install required third-party packages if missing on a personal PC."""
+    missing = []
+    for mod_name, pkg_name in (
+        ("openpyxl", "openpyxl"),
+        ("bs4", "beautifulsoup4"),
+        ("playwright", "playwright"),
+    ):
+        try:
+            __import__(mod_name)
+        except ImportError:
+            missing.append(pkg_name)
+    if missing:
+        print(f"[Setup] Installing missing packages on this PC: {', '.join(missing)} ...")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", *missing])
+
+
+try:
+    _ensure_dependencies()
+    import openpyxl
+    from bs4 import BeautifulSoup
+    from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+    from playwright.sync_api import Page, Response, TimeoutError as PlaywrightTimeoutError, sync_playwright
+except Exception as _boot_exc:
+    import traceback
+    print("\n" + "=" * 76)
+    print("  [STARTUP ERROR] Failed to load or install required Python packages:")
+    print("=" * 76)
+    traceback.print_exc()
+    try:
+        input("\nPress ENTER to close this window...")
+    except Exception:
+        time.sleep(15)
+    sys.exit(1)
 
 APP_TITLE = "Malaysia Court E-Filing (EFS) Scraper — Final Edition"
 URL = "https://efs.kehakiman.gov.my/EFSWeb/eFiling/MyFiling.aspx"
@@ -2331,5 +2361,13 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\nStopped by user.")
     except Exception as exc:
-        print("\nFATAL ERROR:", repr(exc))
+        import traceback
+        print("\n" + "=" * 76)
+        print("  FATAL ERROR:", repr(exc))
+        print("=" * 76)
+        traceback.print_exc()
+        try:
+            input("\nPress ENTER to close this window...")
+        except Exception:
+            time.sleep(15)
         sys.exit(1)
